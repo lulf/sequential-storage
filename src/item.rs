@@ -79,6 +79,7 @@ impl ItemHeader {
         let length_crc =
             u16::from_le_bytes(header_slice[Self::LENGTH_CRC_FIELD].try_into().unwrap());
         let calculated_length_crc = crc16(&header_slice[Self::LENGTH_FIELD]);
+        println!("Header length crc: {:02x?}, actual crc: {:02x?}", length_crc, calculated_length_crc);
 
         if calculated_length_crc != length_crc {
             return Err(Error::Corrupted {
@@ -110,9 +111,13 @@ impl ItemHeader {
             Some(header_crc) => {
                 let data_address = ItemHeader::data_address::<S>(address);
                 let read_len = round_up_to_alignment_usize::<S>(self.length as usize);
+                println!("data address {:08x?}", data_address);
+                println!("read_len {}", self.length);;
+
                 if data_buffer.len() < read_len {
                     return Err(Error::BufferTooSmall(read_len));
                 }
+
                 if data_address + read_len as u32 > end_address {
                     return Ok(MaybeItem::Corrupted(self, data_buffer));
                 }
@@ -418,6 +423,7 @@ fn crc16(data: &[u8]) -> u16 {
         }
     }
     crc ^= 0xffff;
+    println!("Actual crc16: {:02x?}", crc);
     match crc {
         0xFFFF => 0xFFFE,
         other => other,

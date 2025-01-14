@@ -1465,4 +1465,19 @@ mod tests {
             Err(Error::ItemTooBig)
         );
     }
+
+
+    #[test]
+    async fn reproduce() {
+        use mock_flash::MockFlashBase;
+        let mut flash: MockFlashBase<16, 4, 1024> = MockFlashBase::new(WriteCountCheck::Twice, None, true);
+        let data = std::fs::read("events.bin").unwrap();
+        flash.as_bytes_mut().copy_from_slice(&data);
+
+
+        let s = flash.print_items().await;
+        println!("{}", s);
+        assert!(false);
+
+    }
 }

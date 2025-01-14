@@ -124,12 +124,11 @@ impl<const PAGES: usize, const BYTES_PER_WORD: usize, const PAGE_WORDS: usize>
 
         let mut s = String::new();
 
-        writeln!(s, "Items in flash:").unwrap();
-        writeln!(s, "  Bytes until shutoff: {:?}", self.bytes_until_shutoff).unwrap();
+        println!("Items in flash:");
+        println!("  Bytes until shutoff: {:?}", self.bytes_until_shutoff);
 
         for page_index in 0..PAGES {
-            writeln!(
-                s,
+            println!(
                 "  Page {page_index} ({}):",
                 match crate::get_page_state(
                     self,
@@ -142,8 +141,7 @@ impl<const PAGES: usize, const BYTES_PER_WORD: usize, const PAGE_WORDS: usize>
                     Ok(value) => format!("{value:?}"),
                     Err(e) => format!("Error ({e:?})"),
                 }
-            )
-            .unwrap();
+            );
             let page_data_start =
                 crate::calculate_page_address::<Self>(Self::FULL_FLASH_RANGE, page_index)
                     + Self::WORD_SIZE as u32;
@@ -154,16 +152,15 @@ impl<const PAGES: usize, const BYTES_PER_WORD: usize, const PAGE_WORDS: usize>
             let mut it = crate::item::ItemHeaderIter::new(page_data_start, page_data_end);
             while let (Some(header), item_address) = it.traverse(self, |_, _| false).await.unwrap()
             {
+                println!("Header at {:08x?}", header);
                 let next_item_address = header.next_item_address::<Self>(item_address);
                 let maybe_item = header
                     .read_item(self, &mut buf, item_address, page_data_end)
                     .await
                     .unwrap();
-                writeln!(
-                    s,
+                println!(
                     "   Item {maybe_item:?} at {item_address}..{next_item_address}"
-                )
-                .unwrap();
+                );
             }
         }
 
